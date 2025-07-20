@@ -48,6 +48,30 @@ refactor: true
 {% endif %}
 
 <div id="post-list" class="flex-grow-1 px-xl-1">
+  <!-- Blog Description Panel -->
+  <article class="card-wrapper card">
+    <div class="post-preview" style="display: block; pointer-events: none;">
+      <div class="card-body" style="display: block; padding: 1rem; height: auto;">
+        <h1 class="card-title my-2 mt-md-0" style="display: block; overflow: visible; text-overflow: unset; -webkit-line-clamp: unset; -webkit-box-orient: unset; color: var(--text-color); font-size: 1.4rem;">Welcome to ARCHIMANTIX!</h1>
+        
+        <div class="card-text content mt-0 mb-3" style="display: block; text-align: justify;">
+          <p style="display: block; overflow: visible; text-overflow: unset; -webkit-line-clamp: unset; -webkit-box-orient: unset; line-height: 1.5; margin: 0 0 1rem 0; color: var(--text-color); font-size: 1.1rem; text-align: justify;"></br>Hi, I'm Saber.</br></br>
+This blog is where I share thoughts, lessons, and experiments from my work (and curiosity) in computer architecture, simulation tools, and the broader world of systems research.
+
+You'll find a mix of deep technical dives, practical tutorials, and the occasional musing about where things are headed in computing.</p>
+          <p style="display: block; overflow: visible; text-overflow: unset; -webkit-line-clamp: unset; -webkit-box-orient: unset; line-height: 1.5; margin: 0; color: var(--text-color); font-size: 1.1rem; text-align: justify;">🚧 More stuff's coming soon. I'm just getting started. Stay tuned!</p>
+        </div>
+
+        <div class="post-meta" style="color: var(--text-color); font-size: 0.95rem;">
+          <div>
+            <i class="fas fa-info-circle fa-fw me-1"></i>
+            <span class="categories">About this blog</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+  <!-- End Blog Description Panel -->
   {% for post in posts %}
     <article class="card-wrapper card">
       <a href="{{ post.url | relative_url }}" class="post-preview row g-0 flex-md-row-reverse">

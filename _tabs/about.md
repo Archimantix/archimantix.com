@@ -6,19 +6,19 @@ order: 1
 
 <style>
 .custom-about-content {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Source Sans Pro', 'Microsoft Yahei', sans-serif;
     line-height: 1.6;
-    color: #333;
+    color: var(--text-color);
 }
 
 .custom-about-content .about-container {
     max-width: 100%;
     margin: 0;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    backdrop-filter: none;
 }
 
 .custom-about-content .profile-section {
@@ -51,7 +51,7 @@ order: 1
 .custom-about-content .name {
     font-size: 2.8em;
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--heading-color);
     margin-bottom: 10px;
     background: linear-gradient(45deg, #547159, #3a4e3f);
     -webkit-background-clip: text;
@@ -61,7 +61,7 @@ order: 1
 
 .custom-about-content .position {
     font-size: 1.4em;
-    color: #7f8c8d;
+    color: var(--text-muted-color);
     margin-bottom: 25px;
     font-weight: 300;
 }
@@ -117,25 +117,27 @@ order: 1
 }
 
 .custom-about-content .about-text {
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--card-bg);
     padding: 30px;
     border-radius: 15px;
     font-size: 1.1em;
     line-height: 1.8;
     border-left: 4px solid #547159;
     margin-bottom: 40px;
+    box-shadow: var(--card-shadow);
 }
 
 .custom-about-content .section {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--card-bg);
     padding: 30px;
     border-radius: 20px;
     backdrop-filter: blur(10px);
     margin-bottom: 30px;
+    box-shadow: var(--card-shadow);
 }
 
 .custom-about-content .section h3 {
-    color: #2c3e50;
+    color: var(--heading-color);
     margin-bottom: 25px;
     font-size: 1.6em;
     text-align: center;
@@ -170,10 +172,10 @@ order: 1
 }
 
 .custom-about-content .skill-category {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--card-bg);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--card-shadow);
     transition: transform 0.3s ease;
 }
 
@@ -218,7 +220,7 @@ order: 1
 
 .custom-about-content .skill-name {
     font-weight: 500;
-    color: #2c3e50;
+    color: var(--text-color);
     font-size: 0.9em;
 }
 
@@ -275,7 +277,7 @@ order: 1
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
-    color: #7f8c8d;
+    color: var(--text-muted-color);
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95em;
@@ -302,12 +304,13 @@ html {
 
 /* Academic Sections Styles */
 .custom-about-content .academic-item {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--card-bg);
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 15px;
     border-left: 4px solid #547159;
     transition: transform 0.3s ease;
+    box-shadow: var(--card-shadow);
 }
 
 .custom-about-content .academic-item:hover {
@@ -315,7 +318,7 @@ html {
 }
 
 .custom-about-content .academic-item h4 {
-    color: #2c3e50;
+    color: var(--heading-color);
     margin-bottom: 8px;
     font-size: 1.1em;
 }
@@ -328,18 +331,18 @@ html {
 }
 
 .custom-about-content .academic-item .venue {
-    color: #7f8c8d;
+    color: var(--text-muted-color);
     font-style: italic;
     margin-bottom: 8px;
 }
 
 .custom-about-content .academic-item .description {
-    color: #555;
+    color: var(--text-color);
     line-height: 1.6;
 }
 
 .custom-about-content .academic-item .authors {
-    color: #666;
+    color: var(--text-muted-color);
     font-size: 0.95em;
     margin-bottom: 5px;
 }
@@ -432,7 +435,7 @@ html {
                             <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                         </svg>
                     </a>
-                    <a href="https://scholar.google.com/citations?user=johndoe" class="link" data-tooltip="Google Scholar">
+                    <a href="https://scholar.google.com/citations?user=wWO6HXoAAAAJ&hl=en&oi=ao" class="link" data-tooltip="Google Scholar">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"/>
                         </svg>
