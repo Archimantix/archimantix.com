@@ -457,7 +457,7 @@ html {
 
 
         <div class="about-text">
-            <p>Hey there! I'm Saber Ganjisaffar, a Ph.D. Candidate in <a href="https://www1.cs.ucr.edu/" target="_blank" rel="noopener noreferrer">CSE</a> at the <a href="https://www.ucr.edu/" target="_blank" rel="noopener noreferrer">University of California, Riverside (UCR)</a>. My research is focused on building secure and efficient computing systems, with a particular focus on hardware-software co-design for security. I delve into computer architecture and microarchitecture, using tools like architectural simulators to explore innovative approaches, identify optimization opportunities, and bring my research ideas to life. I'm also passionate about contributing to open-source simulator projects and collaborating on research that advances the state-of-the-art in system security and efficiency. My work has been published in conferences like <a href="https://iscaconf.org/isca2025/" target="_blank" rel="noopener noreferrer">ISCA</a>, and I'm fortunate to be advised by Professor <a href="https://www.cs.ucr.edu/~nael/" target="_blank" rel="noopener noreferrer">Nael Abu-Ghazaleh</a> and Professor <a href="https://www.cs.ucr.edu/~csong/" target="_blank" rel="noopener noreferrer">Chengyu Song</a>.</p>
+            <p>Hey there! I'm Saber Ganjisaffar, a Ph.D. Candidate in <a href="https://www1.cs.ucr.edu/" target="_blank" rel="noopener noreferrer">CSE</a> at the <a href="https://www.ucr.edu/" target="_blank" rel="noopener noreferrer">University of California, Riverside (UCR)</a>. My research is focused on building secure and efficient computing systems, with a particular focus on hardware-software co-design for performance and security. I delve into computer architecture and microarchitecture, using tools like architectural simulators to explore innovative approaches, identify optimization opportunities, and bring my research ideas to life. I'm also passionate about contributing to open-source simulator projects and collaborating on research that advances the state-of-the-art in system security and efficiency. My work has been published in conferences like <a href="https://iscaconf.org/isca2025/" target="_blank" rel="noopener noreferrer">ISCA</a>, and I'm fortunate to be advised by Professor <a href="https://www.cs.ucr.edu/~nael/" target="_blank" rel="noopener noreferrer">Nael Abu-Ghazaleh</a> and Professor <a href="https://www.cs.ucr.edu/~csong/" target="_blank" rel="noopener noreferrer">Chengyu Song</a>.</p>
             
             
             <p>I'm always open to new collaborations and interesting research opportunities. Feel free to reach out if you'd like to discuss potential projects or just chat about research!</p>
@@ -488,11 +488,16 @@ html {
             <h3><span class="section-icon"></span>Publications</h3>
             <div class="academic-item">
                 <h4><a href="https://dl.acm.org/doi/pdf/10.1145/3695053.3731119" target="_blank" rel="noopener noreferrer">SpecASan: Mitigating Transient Execution Attacks Using Speculative Address Sanitization</a></h4>
-                <div class="authors"><strong>S Ganjisaffar</strong>, EM Koruyeh,J Zellmer, HA Esfeden, C Song, NB Abu-Ghazaleh</div>
+                <div class="authors"><strong>S. Ganjisaffar</strong>, E.M. Koruyeh, J. Zellmer, H.A. Esfeden, C. Song, N. Abu-Ghazaleh</div>
                 <div class="venue">Proceedings of the 52nd Annual International Symposium on Computer Architecture (ISCA 2025)</div>
                 <div class="description"></div>
+            </div>
 
-                
+            <div class="academic-item">
+                <h4><a href="https://arxiv.org/abs/2507.18581v1" target="_blank" rel="noopener noreferrer">PRACtical: Subarray‑Level Counter Update and Bank‑Level Recovery Isolation for Efficient PRAC Rowhammer Mitigation</a></h4>
+                <div class="authors">R. Nazaraliyev, <strong>S. Ganjisaffar</strong>, N. Nazaraliyev, N. Abu‑Ghazaleh</div>
+                <div class="venue">arXiv, 24 Jul 2025</div>
+                <div class="description"></div>
             </div>
         </div>
 
@@ -500,13 +505,18 @@ html {
         <div class="section" id="services">
             <h3><span class="section-icon"></span>Services</h3>
             <div class="academic-item">
-                <h4>Program Committee Member</h4>
-                <div class="venue">MICRO-58 (2025) Artifact Evaluation Committee Member</div>
+                <h4>Artifact Evaluation Committee Member</h4>
+                <div class="venue">International Symposium on Microarchitecture (MICRO), 2025</div>
                 <div class="description"></div>
             </div>
             <div class="academic-item">
-                <h4>Student Volunteer</h4>
-                <div class="venue">ASPLOS 2024 Conference Organizing Team</div>
+                <h4>Peer Reviewer</h4>
+                <div class="venue">Integration, the VLSI Journal (Elsevier), 2025</div>
+                <div class="description"></div>
+            </div>
+            <div class="academic-item">
+                <h4>Conference Organizing Team (Student Volunteer)</h4>
+                <div class="venue">International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS), 2024</div>
                 <div class="description"></div>
             </div>
         </div>
