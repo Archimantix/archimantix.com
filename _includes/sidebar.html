@@ -4,9 +4,15 @@
   <header class="profile-wrapper">
     <a href="{{ '/' | relative_url }}" id="avatar" class="rounded-circle">
       {%- if site.avatar != empty and site.avatar -%}
-        {%- capture avatar_url -%}
-          {% include media-url.html src=site.avatar %}
-        {%- endcapture -%}
+        {%- if page.url == '/about/' -%}
+          {%- capture avatar_url -%}
+            {% include media-url.html src='/assets/img/avatar/mantix_logo.png' %}
+          {%- endcapture -%}
+        {%- else -%}
+          {%- capture avatar_url -%}
+            {% include media-url.html src='/assets/img/avatar/mantix_logo.png' %}
+          {%- endcapture -%}
+        {%- endif -%}
         <img src="{{- avatar_url -}}" width="112" height="112" alt="avatar" onerror="this.style.display='none'">
       {%- endif -%}
     </a>

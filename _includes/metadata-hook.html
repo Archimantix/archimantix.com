@@ -1,1 +1,27 @@
 <!-- A placeholder to allow defining custom metadata -->
+
+<!-- Enhanced Structured Data and SEO Meta Tags -->
+{% if site.keywords %}
+<meta name="keywords" content="{{ site.keywords }}">
+{% endif %}
+
+<!-- Additional Open Graph meta tags -->
+<meta property="og:locale" content="{{ site.locale | default: 'en_US' }}">
+{% if page.layout == 'post' %}
+<meta property="article:author" content="{{ site.social.name }}">
+<meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
+{% for tag in page.tags limit:6 %}
+<meta property="article:tag" content="{{ tag }}">
+{% endfor %}
+{% endif %}
+
+<!-- Twitter Card enhancements -->
+<meta name="twitter:creator" content="@{{ site.twitter.username }}">
+{% if page.layout == 'post' %}
+<meta name="twitter:label1" content="Written by">
+<meta name="twitter:data1" content="{{ site.social.name }}">
+<meta name="twitter:label2" content="Reading time">
+<meta name="twitter:data2" content="{% assign words = page.content | number_of_words %}{{ words | divided_by: 200 | plus: 1 }} min read">
+{% endif %}
+
+{% include structured-data.html %}

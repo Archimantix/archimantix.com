@@ -4,7 +4,22 @@ permalink: /robots.txt
 ---
 
 User-agent: *
+Allow: /
 
+# Block search bots from indexing assets and admin paths
 Disallow: /norobots/
+Disallow: /assets/js/
+Disallow: /_site/
+Disallow: /node_modules/
 
+# Allow all content by default
+Allow: /posts/
+Allow: /categories/
+Allow: /tags/
+Allow: /about/
+
+# Crawl delay to be respectful to server resources
+Crawl-delay: 1
+
+# Sitemap location
 Sitemap: {{ '/sitemap.xml' | absolute_url }}

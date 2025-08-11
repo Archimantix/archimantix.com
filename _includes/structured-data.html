@@ -1,0 +1,94 @@
+<!-- Enhanced Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{ site.url }}/#website",
+      "url": "{{ site.url }}",
+      "name": "{{ site.title }}",
+      "description": "{{ site.description }}",
+      "publisher": {
+        "@id": "{{ site.url }}/#person"
+      },
+      "potentialAction": [
+        {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "{{ site.url }}/search/?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      ],
+      "inLanguage": "{{ site.lang | default: 'en-US' }}"
+    },
+    {
+      "@type": "Person",
+      "@id": "{{ site.url }}/#person",
+      "name": "{{ site.social.name }}",
+      "url": "{{ site.url }}",
+      "image": {
+        "@type": "ImageObject",
+        "url": "{{ site.url }}{{ site.avatar }}",
+        "width": 112,
+        "height": 112
+      },
+      "description": "PhD Candidate in Computer Science & Engineering at UC Riverside, specializing in computer architecture, system security, and hardware-software co-design",
+      "sameAs": {{ site.social.links | jsonify }},
+      "jobTitle": "PhD Candidate",
+      "worksFor": {
+        "@type": "EducationalOrganization",
+        "name": "University of California, Riverside",
+        "url": "https://www.ucr.edu/"
+      },
+      "alumniOf": [
+        {
+          "@type": "EducationalOrganization",
+          "name": "University of California, Riverside"
+        }
+      ],
+      "knowsAbout": [
+        "Computer Architecture",
+        "System Security", 
+        "gem5 Simulation",
+        "ARM Processors",
+        "Hardware-Software Co-design",
+        "Performance Optimization",
+        "Secure Computing Systems"
+      ]
+    }{% if page.layout == 'post' %},
+    {
+      "@type": "BlogPosting",
+      "@id": "{{ site.url }}{{ page.url }}#article",
+      "isPartOf": {
+        "@id": "{{ site.url }}/#website"
+      },
+      "author": {
+        "@id": "{{ site.url }}/#person"
+      },
+      "headline": "{{ page.title }}",
+      "description": "{{ page.description | default: page.excerpt | strip_html | truncate: 160 }}",
+      "datePublished": "{{ page.date | date_to_xmlschema }}",
+      "dateModified": "{{ page.date | date_to_xmlschema }}",
+      "mainEntityOfPage": {
+        "@id": "{{ site.url }}{{ page.url }}#article"
+      },
+      "url": "{{ site.url }}{{ page.url }}",
+      "image": {
+        "@type": "ImageObject",
+        "url": "{{ site.url }}{{ page.image | default: site.avatar }}",
+        "width": 1200,
+        "height": 630
+      },
+      "publisher": {
+        "@id": "{{ site.url }}/#person"
+      },
+      "keywords": "{{ page.tags | join: ', ' }}{% if site.keywords %}, {{ site.keywords }}{% endif %}",
+      "articleSection": "{{ page.categories | first | default: 'Blog' }}",
+      "inLanguage": "{{ site.lang | default: 'en-US' }}"
+    }{% endif %}
+  ]
+}
+</script>
