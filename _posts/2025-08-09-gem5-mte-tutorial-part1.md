@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Extending gem5 for Arm MTE – Part 1"
-description: Advertising Arm MTE Support in gem5 and Verifying in Full-System Mode
+description: Advertising Arm MTE Support in gem5
 date: 2025-08-10 21:00:00
 categories: [gem5 tutorial]
 tags: [gem5, arm, arm_isa, arm_mte, memory_tagging, architectural_simulation]
@@ -13,7 +13,7 @@ This is the first post in a series on extending gem5 to support Arm’s Memory T
 
 By the end of the series, MTE will not just be running in your gem5 build. You will also know how to approach *any* architectural extension, understand where it fits in the simulator, and feel confident navigating gem5’s framework without getting lost.
 
-This short post focuses only on: (1) advertising Arm MTE in gem5 by adding `FEAT_MTE` and `FEAT_MTE2`, and (2) testing it in Full-System mode.
+This short post focuses only on: (1) advertising Arm MTE in gem5 by adding `FEAT_MTE` and `FEAT_MTE2`, and (2) running a quick Full-System experiment to see how the kernel reacts, and to uncover what’s still missing.
 
 ## FEAT_* Codes in Arm
 
@@ -32,12 +32,6 @@ The “vanilla” `FEAT_MTE` (introduced in Armv8.5-A, `MTE = 0b0001`) is what A
 The PFR family currently includes `ID_AA64PFR0_EL1` and `ID_AA64PFR1_EL1`. This “numbered register” approach is common in AArch64 and also exists for other categories, such as the Instruction Set Attribute Registers (`ID_AA64ISARn_EL1`), Memory Model Feature Registers (`ID_AA64MMFRn_EL1`), and Debug Feature Registers (`ID_AA64DFRn_EL1`). Each category focuses on a different area of the architecture.
 
 For MTE specifically, the **`mte` field** in `ID_AA64PFR1_EL1` occupies bits `[11:8]`. If this field is non-zero, software can assume that the core implements the basic MTE instruction set and state.
-
-<!-- markdownlint-capture -->
-<!-- markdownlint-disable -->
-<!-- > The EL1 in the register name indicates that the register belongs to the Exception Level 1 system register set, which is the privilege level typically used by an operating system kernel. This is because feature discovery is considered a kernel-level responsibility; user space (EL0) normally queries the OS instead of reading this register directly. In gem5’s SE mode, however, there is no actual kernel, so reads to certain EL1 read-only registers (like this one) are allowed from EL0 for convenience. If you’re new to Exception Levels and their roles, take a look at [this](https://krinkinmu.github.io/2021/01/04/aarch64-exception-levels.html) blog post from [Mike's blog](https://krinkinmu.github.io/). 
-{: .prompt-info } -->
-<!-- markdownlint-restore -->
 
 ## Tell gem5 that FEAT_MTE exists
 
@@ -212,12 +206,20 @@ The figure below shows the path `FEAT_MTE` takes through gem5, from being enable
 ![dark mode only](/assets/img/figures/gem5_mte_tutorial_part1_mte_flow_dark.svg){: .dark}
 _Flow of FEAT_MTE through gem5’s CPU model to software_
 
-## Verify MTE Support in FS Mode
+## Time to See It in Action (and Why It Won’t Work… Yet)
 
-Now that we’ve added our changes, let’s confirm that the Linux kernel can actually see our new CPU feature register values and detect Arm MTE support.
-The plan is simple:
-- Boot a Linux kernel inside gem5 in Full-System (FS) simulation mode.
-- Check /proc/cpuinfo to see if mte shows up in the Features list.
+Alright, so we’ve told gem5 “Hey, this CPU has MTE!”. Naturally, the next thing you might want to do is boot Linux and check `/proc/cpuinfo` for that sweet `mte` flag.
+Here’s the catch: the moment the Linux kernel sees MTE in `ID_AA64PFR1_EL1`, it wastes no time putting it to work. Very early in boot, before you even get any outputs on the terminal, it tries to:
+
+- Seed the random tag generator (`RGSR_EL1`)
+- Configure the tag control policy (`GCR_EL1`)
+- Ask the hardware about supported block sizes (`GMID_EL1`)
+
+In our current gem5 build, none of these registers exist yet. The CPU model just shrugs when Linux pokes them, and you get an *unimplemented register* trap. Since this happens long before the console is ready, the boot just… stops. No error message, no panic, no dmesg; just a silent hang.
+
+## Testing in FS Mode
+
+Let’s confirm this issue when running the Linux kernel on gem5 FS mode. Even though we know this will fail, running it in FS mode is a good sanity check, and it’s the fastest way to confirm which registers Linux expects.
 
 ### Build gem5
 
@@ -227,12 +229,13 @@ From the gem5 root directory, build the ARM target:
 scons -j$(nproc) build/ARM/gem5.opt
 ```
 
-### Get the Kernel and Disk Image
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable -->
+> Building gem5 can take quite a while — patience required :'(
+{: .prompt-info }
+<!-- markdownlint-restore -->
 
-For `/proc/cpuinfo` to actually list mte in the Features line, the kernel requires:
-- `CONFIG_ARM64_MTE=y` (introduced along with the MTE patches in 5.10).
-- The CPU to advertise at least `FEAT_MTE2` (`ID_AA64PFR1_EL1.MTE >= 0b0010`).
-- The `HWCAP2_MTE` bit to be set, which the kernel only sets if it sees `FEAT_MTE2` or newer.
+### Get the Kernel and Disk Image
 
 We’ll use a ready-to-go Linux v5.10 kernel ([link](https://resources.gem5.org/resources/arm64-linux-kernel-5.10.110/versions?database=gem5-resources&version=1.0.0)) and Ubuntu 18.04 disk image ([link](https://resources.gem5.org/resources/arm64-ubuntu-18.04-img/versions?database=gem5-resources&version=1.0.0)) from gem5’s public resources, but any kernel ≥ 5.10 should work.
 
@@ -248,48 +251,23 @@ wget https://gem5dist.blob.core.windows.net/dist/develop/images/arm/ubuntu-18-04
 gunzip arm64-ubuntu-20220425.img.gz
 ```
 
-### Create a Boot Script
-
-We want the simulated system to check MTE support right after boot. In gem5, FS mode can run a boot script that executes inside the simulated guest. You can find a set of predefined boot script files in `configs/boot`. Let's create a file called `boot.rcS` in our `fs_files` directory:
-
-```bash
-#!/bin/bash
-
-if grep -i mte /proc/cpuinfo; then
-    echo "MTE detected in /proc/cpuinfo"
-else
-    echo "MTE NOT detected in /proc/cpuinfo"
-fi
-
-echo ""
-echo "Full CPU features from /proc/cpuinfo:"
-grep -i features /proc/cpuinfo || grep -i flags /proc/cpuinfo
-
-/sbin/m5 exit
-```
-{: file='fs_files/boot.rcS'}
-
-This script checks for MTE, prints the CPU feature line, and then exits the simulation.
-
 ### Run the FS simulation
 
-Run gem5 with the FS config script and our resources:
+Run gem5 with the FS config script and our resources. We'll run the simulation with debug flags enabled the to see the potential issues that may raise when accessing unimplemented registers.
 
 ```shell
-build/ARM/gem5.opt configs/example/arm/starter_fs.py \
+build/ARM/gem5.opt \
+    --debug-flags=Arm,MiscRegs,ExecAll \
+    --debug-start=0 \
+    --debug-end=100000000 \
+    --debug-file=boot_debug.log \
+    configs/example/arm/starter_fs.py \
     --cpu atomic \
     --num-cores 1 \
     --mem-size 1GB \
     --kernel fs_files/arm64-vmlinux-5.10.110 \
-    --disk-image fs_files/arm64-ubuntu-20220425.img \
-    --script fs_files/boot.rcS
+    --disk-image fs_files/arm64-ubuntu-20220425.img
 ```
-
-<!-- markdownlint-capture -->
-<!-- markdownlint-disable -->
-> FS mode simulations can take quite a while to boot the kernel — patience required :'(.
-{: .prompt-warning }
-<!-- markdownlint-restore -->
 
 As soon as gem5 starts the simulation, it prints something like:
 
@@ -297,32 +275,34 @@ As soon as gem5 starts the simulation, it prints something like:
 txtsystem.terminal: Listening for connections on port 3456
 ```
 
-You can connect to this port via telnet to watch the kernel boot in real time and then see the result of the boot script:
+You can connect to this port via telnet to watch the kernel boot in real time and then see the boot up process and later the actual terminal of the simulated kernel:
 
 ```shell
 telnet localhost 3456
 ```
 
-### Expected Output
+### Spot the Problem
 
-If everything’s working, you’ll see something like:
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable -->
+> The boot will appear frozen. That’s your cue to kill the simulation and go hunting in the debug log.
+{: .prompt-warning }
+<!-- markdownlint-restore -->
 
-```txt
-...
-+ mount /dev/vda1 /data
-+ break
-+ f=/tmp/script
-+ /sbin/m5 readfile
-+ [ -s /tmp/script ]
-+ chmod +rx /tmp/script
-+ /tmp/script
-MTE detected in /proc/cpuinfo
+If you look at the `m5out/boot_debug.log` file and search for the *unimplemented* keyword, you can find one unimplemented register that `MSR` instrcution tries to read from.
 
-Full CPU features from /proc/cpuinfo:
-Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma asimddp sve asimdfhm flagm paca pacg mte flagm2 svei8mm svef32mm svef64mm i8mm
-...
+```shell
+grep -i "unimplemented" m5out/boot_debug.log
 ```
 
-And that’s it! we’ve taught gem5 about Arm MTE and proved the kernel can see it. Now `/proc/cpuinfo` proudly lists MTE right alongside the other CPU features, ready for user space to make use of it. The cool part? The same trick works for just about any CPU feature you want to experiment with. Once you know how to hook it into gem5’s model and see the kernel pick it up, you’ve got the keys to unlock and play with a whole world of ISA extensions, from new security features to performance-boosting instructions.
+You’ll see something like:
 
-In the next few posts, we’ll dive into adding the actual MTE instructions by extending gem5’s ISA. Today we made the CPU say it supports MTE, next time, we’ll make it actually do it. Stay tuned, it’s going to get even more fun!
+```txt
+1002250: system.cpu_cluster.cpus: A0 T0 : 0x80793668 @kernel_init.__cpu_setup+112    : msr op0:3 op1:0 crn:1 crm:0 op2:6 (unimplemented) : No_OpClass :   flags=(IsNonSpeculative|IsInvalid)
+```
+
+If you look at this opcode (`op0:3 op1:0 crn:1 crm:0 op2:6`) in the ARM documentation (see [this](https://developer.arm.com/documentation/ddi0601/2025-06/AArch64-Registers/GCR-EL1--Tag-Control-Register-)), you can see it encodes to `GCR_EL1` (Tag Control Register). The kernel reads from `GCR_EL1` in the very early `__cpu_setup` assembly code, immediately after detecting the feature. Missing it means the kernel can’t even finish CPU setup.
+
+## Where We Go from Here
+
+Part 2 will be all about giving Linux just enough MTE to survive boot (or at least get past the first few hurdles). That means implementing the key system registers (`GCR_EL1`, `RGSR_EL1`, `GMID_EL1`, ...) so the kernel’s setup code stops tripping over missing hardware. Once those are in place, the boot can finally move forward. Stay tuned!
