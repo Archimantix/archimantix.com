@@ -466,9 +466,14 @@ html {
         <!-- News Section -->
         <div class="section" id="news">
             <h3><span class="section-icon"></span>News</h3>
-            <div class="academic-item">
+            <!-- <div class="academic-item">
                 <div class="date">July 19, 2025</div>
                 <h4>Happy to share that I successfully passed my oral qualifying exam today and have advanced to PhD Candidacy!<span class="news-badge">NEW</span></h4>
+                <div class="description"></div>
+            </div> -->
+            <div class="academic-item">
+                <div class="date">July 19, 2025</div>
+                <h4>Happy to share that I successfully passed my oral qualifying exam today and have advanced to PhD Candidacy!</h4>
                 <div class="description"></div>
             </div>
             <div class="academic-item">
@@ -499,22 +504,44 @@ html {
                 <div class="venue">arXiv, 24 Jul 2025</div>
                 <div class="description"></div>
             </div>
+
+            <div class="academic-item">
+                <h4><a href="https://arxiv.org/pdf/2509.00300" target="_blank" rel="noopener noreferrer">ShadowScope: GPU Monitoring and Validation via Composable Side Channel Signals</a></h4>
+                <div class="authors">G. Almusaddar, Y. Zhang, <strong>S. Ganjisaffar</strong>, B. Williams, Y.D. Liu, D. Ponomarev, N. Abu‑Ghazaleh</div>
+                <div class="venue">arXiv, 3 Sep 2025</div>
+                <div class="description"></div>
+            </div>
         </div>
 
         <!-- Services Section -->
         <div class="section" id="services">
             <h3><span class="section-icon"></span>Services</h3>
             <div class="academic-item">
+                <div class="date">2026</div>
                 <h4>Artifact Evaluation Committee Member</h4>
-                <div class="venue">International Symposium on Microarchitecture (MICRO), 2025</div>
+                <div class="venue">47th IEEE Symposium on Security and Privacy (S&P), 2026</div>
+                <div class="description"></div>
+
+                <h4>Peer Reviewer</h4>
+                <div class="venue">IEEE Access, 2026</div>
+                <div class="description"></div>
+
+                <h4>Artifact Evaluation Committee Member</h4>
+                <div class="venue">European Conference on Computer Systems (EuroSys), 2026</div>
                 <div class="description"></div>
             </div>
             <div class="academic-item">
+                <div class="date">2025</div>
+                <h4>Artifact Evaluation Committee Member</h4>
+                <div class="venue">International Symposium on Microarchitecture (MICRO), 2025</div>
+                <div class="description"></div>
+
                 <h4>Peer Reviewer</h4>
                 <div class="venue">Integration, the VLSI Journal (Elsevier), 2025</div>
                 <div class="description"></div>
             </div>
             <div class="academic-item">
+                <div class="date">2024</div>
                 <h4>Conference Organizing Team (Student Volunteer)</h4>
                 <div class="venue">International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS), 2024</div>
                 <div class="description"></div>
@@ -525,20 +552,20 @@ html {
         <div class="section" id="teaching">
             <h3><span class="section-icon"></span>Teaching</h3>
             <div class="academic-item">
-                <div class="date">Spring 25, Winter 25, Spring 24</div>
-                <h4>Teaching Assistant - CS 010A - Introduction to Computer Science for Science, Mathematics, and Engineering 1 (Beginner C++ Programming)</h4>
+                <div class="date">Winter 26, Fall 25, Spring 25, Winter 25, Spring 24</div>
+                <h4>Teaching Assistant - CS010A - Introduction to Computer Science for Science, Mathematics, and Engineering 1 (Beginner C++ Programming)</h4>
                 <div class="venue">University of California, Riverside</div>
                 <div class="description"></div>
             </div>
             <div class="academic-item">
                 <div class="date">Summer 24, Fall 24</div>
-                <h4>Teaching Assistant - CS 153 - Design of Operating Systems</h4>
+                <h4>Teaching Assistant - CS153 - Design of Operating Systems</h4>
                 <div class="venue">University of California, Riverside</div>
                 <div class="description"></div>
             </div>
             <div class="academic-item">
                 <div class="date">Winter 24</div>
-                <h4>Teaching Assistant - CS 010B - Introduction to Computer Science for Science, Mathematics, and Engineering 2 (Intermediate C++ Programming)</h4>
+                <h4>Teaching Assistant - CS010B - Introduction to Computer Science for Science, Mathematics, and Engineering 2 (Intermediate C++ Programming)</h4>
                 <div class="venue">University of California, Riverside</div>
                 <div class="description"></div>
             </div>
@@ -553,12 +580,6 @@ html {
         <!-- Awards Section -->
         <div class="section" id="awards">
             <h3><span class="section-icon"></span>Awards</h3>
-            <!-- <div class="academic-item">
-                <div class="date">2025</div>
-                <h4>Best Student Paper Award <span class="award-badge">GOLD</span></h4>
-                <div class="venue">International Conference on AI Applications</div>
-                <div class="description">Recognized for outstanding research contribution in the field of neural architecture search.</div>
-            </div> -->
             <div class="academic-item">
                 <div class="date">2022</div>
                 <h4>Dean’s Distinguished Fellowship Award</h4>

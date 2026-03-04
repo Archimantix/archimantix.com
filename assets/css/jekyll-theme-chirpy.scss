@@ -8,3 +8,28 @@
 ';
 
 /* append your custom style below */
+
+/* Dark mode SVG inversion - use {: .dark-invert} on images */
+.dark-invert img {
+  filter: invert(0);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-mode='light']) .dark-invert img {
+    filter: invert(1) hue-rotate(180deg) !important;
+  }
+}
+
+html[data-mode='dark'] .dark-invert img {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Caption support for dark-invert images */
+.dark-invert + em {
+  display: block;
+  text-align: center;
+  font-style: normal;
+  font-size: 80%;
+  padding: 0;
+  color: var(--text-muted-color);
+}

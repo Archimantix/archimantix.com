@@ -1,3 +1,17 @@
+// Dark mode SVG inversion
+// Use {: .dark-invert} on images to auto-invert colors in dark mode
+@media (prefers-color-scheme: dark) {
+  html:not([data-mode='light']) .dark-invert,
+  html:not([data-mode='light']) .dark-invert img {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
+
+html[data-mode='dark'] .dark-invert,
+html[data-mode='dark'] .dark-invert img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 // Custom styles for about page
 .about-profile {
   display: flex;
