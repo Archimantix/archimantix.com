@@ -522,7 +522,7 @@ html {
                 <div class="venue">47th IEEE Symposium on Security and Privacy (S&P), 2026</div>
                 <div class="description"></div>
 
-                <h4>Peer Reviewer</h4>
+                <h4>3x Peer Reviewer</h4>
                 <div class="venue">IEEE Access, 2026</div>
                 <div class="description"></div>
 
