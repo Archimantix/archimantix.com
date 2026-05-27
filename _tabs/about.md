@@ -457,20 +457,22 @@ html {
 
 
         <div class="about-text">
-            <p>Hey there! I'm Saber Ganjisaffar, a Ph.D. Candidate in <a href="https://www1.cs.ucr.edu/" target="_blank" rel="noopener noreferrer">CSE</a> at the <a href="https://www.ucr.edu/" target="_blank" rel="noopener noreferrer">University of California, Riverside (UCR)</a>. My research is focused on building secure and efficient computing systems, with a particular focus on hardware-software co-design for performance and security. I delve into computer architecture and microarchitecture, using tools like architectural simulators to explore innovative approaches, identify optimization opportunities, and bring my research ideas to life. I'm also passionate about contributing to open-source simulator projects and collaborating on research that advances the state-of-the-art in system security and efficiency. My work has been published in conferences like <a href="https://iscaconf.org/isca2025/" target="_blank" rel="noopener noreferrer">ISCA</a>, and I'm fortunate to be advised by Professor <a href="https://www.cs.ucr.edu/~nael/" target="_blank" rel="noopener noreferrer">Nael Abu-Ghazaleh</a> and Professor <a href="https://www.cs.ucr.edu/~csong/" target="_blank" rel="noopener noreferrer">Chengyu Song</a>.</p>
+            <p>Hey there! I'm Saber Ganjisaffar, a Ph.D. Candidate in <a href="https://www1.cs.ucr.edu/" target="_blank" rel="noopener noreferrer">CSE</a> at the <a href="https://www.ucr.edu/" target="_blank" rel="noopener noreferrer">University of California, Riverside (UCR)</a>, specializing in computer architecture, hardware-software co-design, and performance analysis.
+            
+            My current research focuses on CPU/GPU/Accelerator architectural modeling and developing AI-driven analysis tools to identify performance bottlenecks and security vulnerabilities in modern computing systems. I’m interested in building systems that are not only high-performance and efficient, but also secure and reliable by design. My research has been published in venues such as <a href="https://iscaconf.org/isca2025/" target="_blank" rel="noopener noreferrer">ISCA</a>, and I’m fortunate to be advised by Professors <a href="https://www.cs.ucr.edu/~nael/" target="_blank" rel="noopener noreferrer">Nael Abu-Ghazaleh</a> and <a href="https://www.cs.ucr.edu/~csong/" target="_blank" rel="noopener noreferrer">Chengyu Song</a>.</p>
             
             
-            <p>I'm always open to new collaborations and interesting research opportunities. Feel free to reach out if you'd like to discuss potential projects or just chat about research!</p>
+            <p>I’m always happy to connect with people working on interesting problems in computer architecture, systems, and security. Feel free to reach out!</p>
         </div>
 
         <!-- News Section -->
         <div class="section" id="news">
             <h3><span class="section-icon"></span>News</h3>
-            <!-- <div class="academic-item">
-                <div class="date">July 19, 2025</div>
-                <h4>Happy to share that I successfully passed my oral qualifying exam today and have advanced to PhD Candidacy!<span class="news-badge">NEW</span></h4>
+            <div class="academic-item">
+                <div class="date">April 1, 2026</div>
+                <h4>Our paper, SpecASan, originally accepted to ISCA 2025, has been selected as an <b>Honorable Mention</b> in this year’s <b>IEEE Micro Top Picks</b>! <span class="news-badge">NEW</span></h4>
                 <div class="description"></div>
-            </div> -->
+            </div>
             <div class="academic-item">
                 <div class="date">July 19, 2025</div>
                 <h4>Happy to share that I successfully passed my oral qualifying exam today and have advanced to PhD Candidacy!</h4>
@@ -483,7 +485,7 @@ html {
             </div>
             <div class="academic-item">
                 <div class="date">May 21, 2025</div>
-                <h4>Our paper, "SpecASan: Mitigating Transient Execution Attacks Using Speculative Address Sanitization," got accepted to ISCA 2025! 🎉 </h4>
+                <h4>Our paper, "SpecASan: Mitigating Transient Execution Attacks Using Speculative Address Sanitization," got accepted to ISCA 2025!</h4>
                 <div class="description"></div>
             </div>
         </div>
@@ -518,16 +520,22 @@ html {
             <h3><span class="section-icon"></span>Services</h3>
             <div class="academic-item">
                 <div class="date">2026</div>
+
+                <h4>Conference Organizing Team (Student Volunteer)</h4>
+                <div class="venue">IEEE International Symposium on High-Performance Computer Architecture (HPCA), 2027</div>
+                <div class="description"></div>
+
                 <h4>Artifact Evaluation Committee Member</h4>
                 <div class="venue">47th IEEE Symposium on Security and Privacy (S&P), 2026</div>
                 <div class="description"></div>
 
-                <h4>3x Peer Reviewer</h4>
+                <h4>4x Peer Reviewer</h4>
                 <div class="venue">IEEE Access, 2026</div>
                 <div class="description"></div>
 
                 <h4>Artifact Evaluation Committee Member</h4>
                 <div class="venue">European Conference on Computer Systems (EuroSys), 2026</div>
+
                 <div class="description"></div>
             </div>
             <div class="academic-item">
@@ -552,7 +560,7 @@ html {
         <div class="section" id="teaching">
             <h3><span class="section-icon"></span>Teaching</h3>
             <div class="academic-item">
-                <div class="date">Winter 26, Fall 25, Spring 25, Winter 25, Spring 24</div>
+                <div class="date">Spring and Winter 26, Fall, Spring, and Winter 25, Spring 24</div>
                 <h4>Teaching Assistant - CS010A - Introduction to Computer Science for Science, Mathematics, and Engineering 1 (Beginner C++ Programming)</h4>
                 <div class="venue">University of California, Riverside</div>
                 <div class="description"></div>
