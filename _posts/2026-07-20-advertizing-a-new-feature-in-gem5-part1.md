@@ -1,18 +1,18 @@
 ---
 layout: post
-title: "Arm MTE in gem5 | Part 1 : Advertizing Arm MTE"
-description: Enabling Arm Memory Tagging Extension in gem5 by advertising CPU support and exposing it through feature registers.
-date: 2026-03-12 22:00:00
+title: "Advertising a CPU Feature in gem5 | Part 1 : Telling Software It Exists"
+description: How to advertise a new CPU feature to software in gem5's full-system mode, using Arm Memory Tagging Extension (MTE) as an example.
+date: 2026-07-20 22:00:00
 categories: [dev_log]
 tags: [gem5, arm, arm_isa, arm_mte, mte, feat_mte, memory_tagging, architectural_simulation]
 author: saber
 ---
 
-For much of my PhD, I’ve lived deep in the weeds of gem5. While I’ve worked with other simulators, gem5 has become my primary tool for exploring architectural ideas. This journey documents the development challenges and lessons that grew from a specific research need: bringing Arm Memory Tagging Extension (MTE) support to gem5.
+These two posts grew out of a question I ran into while working on gem5: **when you want to add a brand-new CPU feature, how do you make the software running on top actually know the feature is there?** That's the feature advertisement (or visibility) problem, and it turns out to be a little adventure of its own, even before you write a single line of the feature's real logic.
 
-It all started with a *deceptively* simple question: ***What would it take to get Arm MTE running in a full-system simulation?***
+I'll use the Arm Memory Tagging Extension (MTE) as my running example throughout, and I'll do it in full-system (FS) mode, because that's where the question really bites. In FS mode, a real OS boots, reads the CPU's feature registers, and immediately starts acting on what it finds. If you advertise a feature carelessly, the kernel will happily take you at your word and start using functionality that doesn't actually exist yet.
 
-I didn't want a hack that just appeared to work. I wanted to understand how gem5’s internals, from the ISA description language and decode logic to the CPU pipeline and memory subsystem, actually interact to support a modern hardware feature. Whether you are a fellow researcher or a simulator enthusiast, I hope this journey helps you navigate the complex maze of architectural extensions in gem5.
+These posts are about my experience getting MTE advertised correctly to a booting Linux kernel. The details will be MTE-specific, but the underlying mechanics (feature enums, ID registers, and all the system registers and dependencies a feature drags in behind it) are the same for just about any CPU feature you'd want to add. Hopefully, they'll save you a bit of time when you run into the same problem.
 
 ## Arm ISA Feature Model and FEAT_MTE
 
@@ -181,7 +181,7 @@ InitReg(MISCREG_ID_AA64PFR1_EL1)
 
 ## Time to See It in Action (and What Went Wrong)
 
-Alright, now that we’ve told gem5 “Hey, this CPU has MTE,” I wanted to check it out in Linux. I booted and arm64 kernel in FS mode (any kernel ≥ 5.10 should work, I used [this](https://resources.gem5.org/resources/arm64-linux-kernel-5.10.110/versions?database=gem5-resources&version=1.0.0)), expecting to spot `mte` in `/proc/cpuinfo`. 
+Alright, now that we’ve told gem5 “Hey, this CPU has MTE,” I wanted to check it out in Linux. I booted an arm64 kernel in FS mode (any kernel ≥ 5.10 should work, I used [this](https://resources.gem5.org/resources/arm64-linux-kernel-5.10.110/versions?database=gem5-resources&version=1.0.0)), expecting to spot `mte` in `/proc/cpuinfo`. 
 
 Almost immediately, the boot froze. No messages, no panic, nothing. I checked the boot log and searched for potential issues and found this (debuged using `--debug-flags=Arm,MiscRegs,ExecAll,Faults` gem5 flags):
 
@@ -227,6 +227,8 @@ Looking back at the surrounding code in `__cpu_setup`, this instruction tries to
 - Configure the tag control policy (`GCR_EL1`) 
 - Ask the hardware about supported block sizes (`GMID_EL1`) 
 
-In our current gem5 build, either these registers do not exist at all or their bitfields are not complete yet to support MTE and finish the its setup. The CPU model just shrugs when Linux pokes them, and you get an *unimplemented register* trap or a fault like what we saw. Since this happens long before the console is ready, the boot stops. No error message, no panic, no dmesg; just a silent hang. This shows that just marking MTE in the CPU isn’t enough. Linux expects certain system registers to exist before it can use memory tagging.
+In our current gem5 build, either these registers do not exist at all or their bitfields are not complete yet to support MTE and finish the its setup. The CPU model just shrugs when Linux pokes them, and you get an *unimplemented register* trap or a fault like what we saw. Since this happens long before the console is ready, the boot stops. No error message, no panic, no dmesg; just a silent hang.
 
-In the next post, we’ll add these registers so Linux can boot cleanly and actually see MTE in `/proc/cpuinfo`.
+This shows that just marking MTE in the CPU isn’t enough. Linux expects certain system registers to exist before it can use memory tagging.
+
+In the next post, we'll add those registers so Linux can get further in the boot process and eventually report MTE in its feature list.

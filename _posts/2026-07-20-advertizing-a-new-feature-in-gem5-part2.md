@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "Arm MTE in gem5 | Part 2 : Understanding and Adding the System Registers"
-description: Exploring the Linux kernel to identify MTE system registers and implement them in gem5 for early boot support.
-date: 2026-03-15 22:00:00
+title: "Advertising a CPU Feature in gem5 | Part 2 : Adding System Registers"
+description: How to advertise a new CPU feature to software in gem5's full-system mode, using Arm Memory Tagging Extension (MTE) as an example.
+date: 2026-07-20 22:00:00
 categories: [dev_log]
 tags: [gem5, arm, arm_isa, arm_mte, mte, feat_mte, memory_tagging, architectural_simulation]
 author: saber
@@ -241,8 +241,8 @@ MISCREG_USR_NS_RD, MISCREG_USR_NS_WR    // EL0, Non-Secure
 MISCREG_USR_S_RD,  MISCREG_USR_S_WR     // EL0, Secure
 MISCREG_PRI_NS_RD, MISCREG_PRI_NS_WR    // EL1, Non-Secure
 MISCREG_PRI_S_RD,  MISCREG_PRI_S_WR     // EL1, Secure
-MISCREG_HYP_NS_RD, MISCREG_HYP_NS_WR   // EL2, Non-Secure
-MISCREG_HYP_S_RD,  MISCREG_HYP_S_WR    // EL2, Secure
+MISCREG_HYP_NS_RD, MISCREG_HYP_NS_WR    // EL2, Non-Secure
+MISCREG_HYP_S_RD,  MISCREG_HYP_S_WR     // EL2, Secure
 MISCREG_MON_NS0_RD, MISCREG_MON_NS0_WR  // EL3 (SCR.NS==0)
 MISCREG_MON_NS1_RD, MISCREG_MON_NS1_WR  // EL3 (SCR.NS==1)
 ```
@@ -259,7 +259,7 @@ The last thing I want to talk about which I had a hard time to understand is the
 | `.fault(EL, callback)` | Trap both reads and writes at the specified EL |
 | `.fault(callback)` | Trap at all ELs (EL0 through EL3) |
 
-The signature for a fault callback is like this, which eturns `NoFault` to allow the access, or calls `inst.generateTrap(target_EL)` to trap.
+The signature for a fault callback is like this, which returns `NoFault` to allow the access, or calls `inst.generateTrap(target_EL)` to trap.
 
 ```cpp
 Fault callback(const MiscRegLUTEntry &entry,
@@ -395,6 +395,102 @@ Just to wrap up and summarize all the register additions/updates required for MT
 | `TCR_EL1` | Translation Control Register | Add `tcma0` and `tcma1` fields | [Link](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/TCR-EL1--Translation-Control-Register--EL1-) |
 | `SCTLR_EL1` | System Control Register | Add `ata` and `ata0` fields | [Link](https://developer.arm.com/documentation/111107/2025-12/AArch64-Registers/SCTLR-EL1--System-Control-Register--EL1-) |
 
+### A Few Tricky Initializations
+
+Before moving on to the next step, I want to call out two entries in the register table that need more attention: `SCTLR_EL1` and `RGSR_EL1`. These initializations won't affect the FS mode boot process we're working through here, but they'll become essential once we switch to gem5's System Emulation (SE) mode. Getting their reset values right matters a lot, and I found that out the hard way :) I'll explain why.
+
+#### SCTLR_EL1: The mapsTo Trap
+
+Adding the `ata` (bit 43) and `ata0` (bit 42) fields to `SCTLR_EL1` in `misc_types.hh` is straightforward:
+
+```cpp
+BitUnion64(SCTLR)
+    ...
+    Bitfield<43>     ata;    // Enable MTE at EL1
+    Bitfield<42>     ata0;   // Enable MTE at EL0
+    Bitfield<41, 40> tcf0;   // Tag Check Fault at EL0
+    Bitfield<39, 38> tcf;    // Tag Check Fault at EL1
+    ...
+EndBitUnion(SCTLR)
+```
+{: file='src/arch/arm/regs/misc_types.hh'}
+
+But *initializing* those fields is a different story. If you look at `SCTLR_EL1`'s `InitReg()` entry in `misc.cc`, you'll notice it ends with `.mapsTo(MISCREG_SCTLR_NS)`:
+
+```cpp
+InitReg(MISCREG_SCTLR_EL1)
+    .allPrivileges().exceptUserMode()
+    ...
+    .mapsTo(MISCREG_SCTLR_NS);
+```
+{: file='src/arch/arm/regs/misc.cc'}
+
+That `.mapsTo()` means `SCTLR_EL1` is just a logical alias; its backing storage is `MISCREG_SCTLR_NS`. So any `.reset()` call you put on the `SCTLR_EL1` entry is completely ignored and the backing register is what gets initialized. To find where `MISCREG_SCTLR_NS` is reset, you have to look a bit further up in the same file, at a lambda called `sctlr_reset`:
+
+```cpp
+auto sctlr_reset = [aarch64=highestELIs64] ()
+{
+    SCTLR sctlr = 0;
+    if (aarch64) {
+        sctlr.afe = 1;
+        sctlr.tre = 1;
+        sctlr.span = 1;
+        // ...
+    } else {
+        // ...
+    }
+    return sctlr;
+}();
+```
+{: file='src/arch/arm/regs/misc.cc'}
+
+No `ata` or `ata0` anywhere. For **FS mode**, this is fine: the kernel eventually writes `SCTLR_EL1` directly during setup, so the reset value doesn't matter much. But in **SE mode** (Syscall Emulation), there's no bootloader and no EL3/EL2 setup phase (your binary drops straight into EL0 with just the register reset values to go on). If `ata0` is zero at reset, MTE is disabled at EL0 from the start, and every MTE instruction that generates a tag will silently return zero, with no errors or warnings, just wrong results.
+
+The fix is to capture `release` (refers to `ArmDefaultRelease` from post 1) in the lambda and set those bits when `FEAT_MTE2` is present:
+
+```cpp
+auto sctlr_reset = [aarch64=highestELIs64, release=release] ()
+{
+    SCTLR sctlr = 0;
+    if (aarch64) {
+        sctlr.afe = 1;
+        sctlr.tre = 1;
+        sctlr.span = 1;
+        // ...
+    } else {
+        // ...
+    }
+    if (release->has(ArmExtension::FEAT_MTE2)) {
+        sctlr.ata  = 1;  // Enable MTE at EL1
+        sctlr.ata0 = 1;  // Enable MTE at EL0
+    }
+    return sctlr;
+}();
+```
+{: file='src/arch/arm/regs/misc.cc'}
+
+In FS mode, the kernel overwrites this during its own setup, so it's harmless there. In SE mode, it's what keeps MTE from being silently disabled.
+
+#### RGSR_EL1: A Stuck LFSR
+
+The Random Allocation Tag Seed Register (`RGSR_EL1`) stores the LFSR seed that drives deterministic tag generation when `GCR_EL1.RRND = 0`. The problem with an LFSR is that if the seed is zero, it stays zero forever. With the default reset value of `0`, every call to the tag-generation function returns a predictable tag of zero for every address.
+
+In FS mode, Linux seeds `RGSR_EL1` explicitly in `mte_cpu_setup()` before any user code runs. However, in SE mode, nobody does this for us. So we initialize `RGSR_EL1` with a non-zero seed directly in gem5:
+
+```cpp
+InitReg(MISCREG_RGSR_EL1)
+    .allPrivileges().exceptUserMode()
+    .res0(0xFFFFFFFFFF0000F0ULL)
+    .faultRead(EL1, faultMteEL1)
+    .faultWrite(EL1, faultMteEL1)
+    .faultRead(EL2, faultMteEL2)
+    .faultWrite(EL2, faultMteEL2)
+    .reset(0xBEEF00);  // seed=0xBEEF in bits[23:8]; keeps LFSR non-trivial in SE mode
+```
+{: file='src/arch/arm/regs/misc.cc'}
+
+The seed field lives in bits [23:8], so `0xBEEF00` places `0xBEEF` there (any non-zero value works). In FS mode, Linux overwrites it anyway before any MTE-using code runs, so the preset value has no effect on FS-mode behavior.
+
 ### One More Thing: The Bootloader Needs to Know About MTE Too!
 
 After wiring up all the registers above, I rebuilt gem5, booted the kernel, and... it still crashed in the exact same place. But this time, I've got `Secure Monitor Trap`. I stared at the trace for a while before it hit me: the problem wasn't in gem5's register model at all. It was in the *bootloader*.
@@ -501,4 +597,6 @@ You can see the CPU correctly advertizes the Arm MTE feature and Linux kernel co
 
 This function lives in `arch/arm64/lib/mte.S` in the kernel and uses actual MTE instructions like `STZG` (Store Allocation Tag, Zeroing) or `STZGM` (Store Tag Multiple) to clear memory tags. gem5 doesn't implement these instructions yet. When the kernel executes one of these MTE instructions, gem5's decoder doesn't recognize it, generates an undefined instruction exception, and the kernel panics.
 
-At this stage, we've completed the feature advertisement layer (system registers), but now comes the real fun: the instruction implementation layer. In the next few posts I'll dive into how to define and add these new Arm MTE instructions so the CPU decode stage actually knows what to do with them, and hopefully, the Linux kernel finally survives the boot procedure. Stay tuned!
+At this stage, the *advertisement* layer is complete. Stepping back from MTE for a second, that's the main lesson from these two posts: telling gem5 that a CPU feature exists is a two-part job—setting the feature bit in the appropriate ID register (Part 1) and implementing the cluster of system registers that software immediately reaches for once it believes you (Part 2). Get those two pieces right, and a real OS will boot far enough to *try* to use the feature.
+
+The kernel crash above makes the next problem obvious: advertising a feature is not the same as implementing it. The moment Linux tries to execute feature-specific instructions, the boot dies. Implementing the feature for real is a much bigger engineering effort, and that's outside the scope of these two blog posts.
