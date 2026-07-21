@@ -494,6 +494,12 @@ html {
         <div class="section" id="publications">
             <h3><span class="section-icon"></span>Publications</h3>
             <div class="academic-item">
+                <h4><a href="https://arxiv.org/abs/2607.13184" target="_blank" rel="noopener noreferrer">Microflow: Microarchitectural Causal Observability for Deep Cross-Layer Analysis and Optimization</a></h4>
+                <div class="authors"><strong>S. Ganjisaffar</strong>, C. Song, N. Abu-Ghazaleh</div>
+                <div class="venue">arXiv, 14 Jul 2026</div>
+                <div class="description"></div>
+            </div>
+            <div class="academic-item">
                 <h4><a href="https://dl.acm.org/doi/pdf/10.1145/3695053.3731119" target="_blank" rel="noopener noreferrer">SpecASan: Mitigating Transient Execution Attacks Using Speculative Address Sanitization</a></h4>
                 <div class="authors"><strong>S. Ganjisaffar</strong>, E.M. Koruyeh, J. Zellmer, H.A. Esfeden, C. Song, N. Abu-Ghazaleh</div>
                 <div class="venue">Proceedings of the 52nd Annual International Symposium on Computer Architecture (ISCA 2025)</div>
