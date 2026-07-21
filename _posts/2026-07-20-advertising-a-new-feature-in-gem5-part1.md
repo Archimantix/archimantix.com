@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advertising a CPU Feature in gem5 | Part 1 : Telling Software It Exists"
+title: "Advertising a CPU Feature in gem5 | Part 1: Telling Software It Exists"
 description: How to advertise a new CPU feature to software in gem5's full-system mode, using Arm Memory Tagging Extension (MTE) as an example.
 date: 2026-07-20 22:00:00
 categories: [dev_log]
@@ -8,7 +8,7 @@ tags: [gem5, arm, arm_isa, arm_mte, mte, feat_mte, memory_tagging, architectural
 author: saber
 ---
 
-These two posts grew out of a question I ran into while working on gem5: **when you want to add a brand-new CPU feature, how do you make the software running on top actually know the feature is there?** That's the feature advertisement (or visibility) problem, and it turns out to be a little adventure of its own, even before you write a single line of the feature's real logic.
+These two posts grew out of a question I ran into while working on gem5: **when you want to add a brand-new CPU feature, how do you make the software running on top actually know the feature is there?** That's the feature advertisement problem, and it turns out to be a little adventure of its own, even before you write a single line of the feature's real logic.
 
 I'll use the Arm Memory Tagging Extension (MTE) as my running example throughout, and I'll do it in full-system (FS) mode, because that's where the question really bites. In FS mode, a real OS boots, reads the CPU's feature registers, and immediately starts acting on what it finds. If you advertise a feature carelessly, the kernel will happily take you at your word and start using functionality that doesn't actually exist yet.
 
@@ -89,7 +89,7 @@ class ArmDefaultSERelease(ArmRelease):
 
 ### Set the mte field in ID_AA64PFR1_EL1
 
-According to the ARMv8.5 ISA spec, the `mte` field in `ID_AA64PFR1_EL1` register (see [this](https://developer.arm.com/documentation/ddi0601/2025-06/AArch64-Registers/ID-AA64PFR1-EL1--AArch64-Processor-Feature-Register-1)) tells you whether MTE is present on a system (and it's version). In gem5, this register is implemented as one of the “misc” registers, which you’ll find in `regs/misc.hh`.
+According to the ARMv8.5 ISA spec, the `mte` field in `ID_AA64PFR1_EL1` register (see [this](https://developer.arm.com/documentation/ddi0601/2025-06/AArch64-Registers/ID-AA64PFR1-EL1--AArch64-Processor-Feature-Register-1)) tells you whether MTE is present on a system (and its version). In gem5, this register is implemented as one of the “misc” registers, which you’ll find in `regs/misc.hh`.
 
 ```c++
 namespace ArmISA
@@ -214,7 +214,7 @@ ID_AA64PFR1_EL1 = 0x0000000001000200
 bits[11:8] = 0b0010 → FEAT_MTE2
 ```
 
-So, at this point we can say the CPU is correctly advertizing MTE feature using the `ID_AA64PFR1_EL1` feature register. Hooray!!
+So, at this point we can say the CPU is correctly advertising MTE feature using the `ID_AA64PFR1_EL1` feature register. So far, so good.
 
 But, it was still not clear to me what is causing the boot process to fail. So, I looked for the faulting instruction and I realized that this is a system register access instruction and based on the fault location in the source code and the instruction encoding (`inst: 0xd51810ca`), we can say it is `msr tcr_el1, x5` instruction. So the kernel wasn’t crashing randomly, it was trying to write to `TCR_EL1`. 
 
@@ -227,7 +227,7 @@ Looking back at the surrounding code in `__cpu_setup`, this instruction tries to
 - Configure the tag control policy (`GCR_EL1`) 
 - Ask the hardware about supported block sizes (`GMID_EL1`) 
 
-In our current gem5 build, either these registers do not exist at all or their bitfields are not complete yet to support MTE and finish the its setup. The CPU model just shrugs when Linux pokes them, and you get an *unimplemented register* trap or a fault like what we saw. Since this happens long before the console is ready, the boot stops. No error message, no panic, no dmesg; just a silent hang.
+In our current gem5 build, either these registers do not exist at all or their bitfields are not complete yet to support MTE and finish its setup. The CPU model just shrugs when Linux pokes them, and you get an *unimplemented register* trap or a fault like what we saw. Since this happens long before the console is ready, the boot stops. No error message, no panic, no dmesg; just a silent hang.
 
 This shows that just marking MTE in the CPU isn’t enough. Linux expects certain system registers to exist before it can use memory tagging.
 

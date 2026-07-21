@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advertising a CPU Feature in gem5 | Part 2 : Adding System Registers"
+title: "Advertising a CPU Feature in gem5 | Part 2: Adding System Registers"
 description: Once you advertise a CPU feature in gem5, software reaches for its system registers. How to add system registers in gem5, using Arm MTE as the example.
 date: 2026-07-20 22:00:00
 categories: [dev_log]
@@ -8,9 +8,9 @@ tags: [gem5, arm, arm_isa, arm_mte, mte, feat_mte, memory_tagging, architectural
 author: saber
 ---
 
-In the last post, we discovered that simply advertising MTE through the feature registers isn’t enough to make it usable. The moment Linux sees `FEAT_MTE`/`FEAT_MTE2`, it assumes the hardware is ready and immediately starts enabling memory tagging. That early boot code reaches for a handful of system registers to enable tag-aware address translation, seed the tag generator, define the tag control policy, and query MTE implementation details. In our current gem5 model, those registers don’t exist yet or they are not complete. So, everything stops before the console even wakes up.
+In the last post, we discovered that simply advertising MTE through the feature registers isn’t enough to make it usable. The moment Linux sees `FEAT_MTE`/`FEAT_MTE2`, it assumes the hardware is ready and immediately starts enabling memory tagging. That early boot code reaches for a handful of system registers to enable tag-aware address translation, seed the tag generator, define the tag control policy, and query MTE implementation details. In our current gem5 model, those registers don’t exist or they are not complete yet. So, everything stops before the console even wakes up.
 
-This post is my deep dive into the Linux bootup procedure and Arm documentation to track down system registers that MTE depends on, find their encodings and bitfields, and wire them up in gem5 (or complete the stubs if they’re already there). But, first let's find and look at `__cpu_setup` in linux to get a better sense of what's going on.
+This post is my deep dive into the Linux bootup procedure and Arm documentation to track down system registers that MTE depends on, find their encodings and bitfields, and wire them up in gem5 (or complete the stubs if they’re already there). But first, let's find and look at `__cpu_setup` in linux to get a better sense of what's going on.
 
 ## Reading __cpu_setup to see what MTE really needs
 
@@ -42,7 +42,7 @@ Once these bits are set, the kernel assumes tagged pointers and tagged memory ar
 
 ## Setting Up the MTE Hardware in Linux
 
-After `__cpu_setup`, the kernel calls `cpu_enable_mte()` as part of CPU feature initialization (see [this](https://github.com/torvalds/linux/blob/master/arch/arm64/kernel/cpufeature.c)). As far as I understand it (and I might be oversimplifying here), when the kernel boots, it builds a table of supported CPU features by reading system registers like `ID_AA64PFR1_EL1` to check for `MTE` and `MTE2`. If the CPU claims support for these features, the kernel schedules a callback, such as `cpu_enable_mte()` to run as part of its CPU capability setup.
+After `__cpu_setup`, the kernel calls `cpu_enable_mte()` as part of CPU feature initialization (see [this](https://github.com/torvalds/linux/blob/master/arch/arm64/kernel/cpufeature.c)). As far as I understand (and I might be oversimplifying here), when the kernel boots, it builds a table of supported CPU features by reading system registers like `ID_AA64PFR1_EL1` to check for `MTE` and `MTE2`. If the CPU claims support for these features, the kernel schedules a callback, such as `cpu_enable_mte()` to run as part of its CPU capability setup.
 
 ```c
 static const struct arm64_cpu_capabilities arm64_features[] = {
@@ -120,11 +120,11 @@ Once these pieces are in place, the CPU is finally ready to support memory taggi
 
 ## Adding MTE system Registers to gem5
 
-I'm gonna try to explain what I *think* I finally understood after a lot of digging and jumping between the ARM documentation and gem5 source code and connecting the dots. My goal was to find, in general, how gem5 defines Arm system (misc) registers, how they get initialized, and how access permissions are enforced.
+I'll try to explain what I *think* I finally understood after a lot of digging and jumping between the Arm documentation and gem5 source code and connecting the dots. My goal was to find, in general, how gem5 defines Arm system (misc) registers, how they get initialized, and how access permissions are enforced.
 
 I think the easiest way to make sense of it is to walk through a concrete example. I’ll use the **Tag Control Register** (`GCR_EL1`) and break down each step needed to add it. Once this flow makes sense, the same pattern applies to any other system register you need to implement or update.
 
-First of all, we need to know all the register definitions for Arm live in `src/arch/arm/regs/`. The following steps are required to add a new ARM system register. Each step is illustrated with the actual `GCR_EL1` implementation.
+First of all, we need to know all the register definitions for Arm live in `src/arch/arm/regs/`. The following steps are required to add a new Arm system register. Each step is illustrated with the actual `GCR_EL1` implementation.
 
 ### Step 1: Add the Register Enum Entry
 
@@ -161,13 +161,13 @@ const char * const miscRegName[] = {
 
 ### Step 3: Add the Instruction Encoding Map
 
-ARM system registers are accessed via MRS/MSR instructions with a 5-tuple encoding: `(op0, op1, CRn, CRm, op2)`. I looked for the encoding and the definition of this register in Arm doc (see [this](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/GCR-EL1--Tag-Control-Register-)) and I found the following for `GCR_EL1`:
+Arm system registers are accessed via MRS/MSR instructions with a 5-tuple encoding: `(op0, op1, CRn, CRm, op2)`. I looked for the encoding and the definition of this register in Arm doc (see [this](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/GCR-EL1--Tag-Control-Register-)) and I found the following for `GCR_EL1`:
 
 | op0   | op1   | CRn    | CRm    | op2
 | :---- | :---- | :----- | :----- | :------
 | 0b11  | 0b000 | 0b0001 | 0b0000 | 0b110
 
-So, we need to add the mapping for this encoding to `miscRegNumToIdx` map in `src/arch/arm/regs/misc.cc`. The `MiscRegNum64` constructor takes `(op0, op1, CRn, CRm, op2)` and these values come directly from the ARM Architecture Reference Manual. The map is sorted by encoding value; insert at the correct position.
+So, we need to add the mapping for this encoding to `miscRegNumToIdx` map in `src/arch/arm/regs/misc.cc`. The `MiscRegNum64` constructor takes `(op0, op1, CRn, CRm, op2)` and these values come directly from the Arm Architecture Reference Manual. The map is sorted by encoding value; insert at the correct position.
 
 ```cpp
 std::unordered_map<MiscRegNum64, MiscRegIndex> miscRegNumToIdx{
@@ -182,7 +182,7 @@ std::unordered_map<MiscRegNum64, MiscRegIndex> miscRegNumToIdx{
 
 ### Step 4: Define the Bitfield Type
 
-Next is to define a `BitUnion64` (or `BitUnion32`) type in `src/arch/arm/regs/misc_types.hh` so the register's fields can be accessed by name in C++ code. For `GCR_EL1`, the ARM specification defines the bitfields as follows (see [this](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/GCR-EL1--Tag-Control-Register-)):
+Next is to define a `BitUnion64` (or `BitUnion32`) type in `src/arch/arm/regs/misc_types.hh` so the register's fields can be accessed by name in C++ code. For `GCR_EL1`, the Arm specification defines the bitfields as follows (see [this](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/GCR-EL1--Tag-Control-Register-)):
 
 ![](/assets/img/figures/GCRL_EL1_reg_encoding.svg){: .dark-invert}
 <em>Bit field layout of the GCR_EL1 system register</em>
@@ -248,7 +248,7 @@ MISCREG_MON_NS1_RD, MISCREG_MON_NS1_WR  // EL3 (SCR.NS==1)
 ```
 {: file='src/arch/arm/regs/misc_info.hh'}
 
-However, there are some methods to access them conviniently such as `.allPrivileges()` which gives full access at all ELs or `.exceptUserMode()` which removes EL0 access (and is commonly chained after `.allPrivileges()`). You can find more information about these methods and functions in `src/arch/arm/regs/misc_info.hh`.
+However, there are some methods to access them conveniently such as `.allPrivileges()` which gives full access at all ELs or `.exceptUserMode()` which removes EL0 access (and is commonly chained after `.allPrivileges()`). You can find more information about these methods and functions in `src/arch/arm/regs/misc_info.hh`.
 
 The last thing I want to talk about which I had a hard time to understand is the **Fault Handlers**. They implement conditional trapping behavior where an access at a given EL should generate a trap to a higher EL. The table below summarizes what I learned about different types of fault handlers:
 
@@ -280,9 +280,9 @@ InitReg(MISCREG_SCTLR_EL1)
 ```
 {: file='src/arch/arm/regs/misc.cc'}
 
-I spent more time than I'd care to admit staring at the `InitReg()` chains before it finally clicked how they work. The way gem5 handles bitsets for permissions and fault handlers feels like a secret handshake between the ISA and the CPU models and if you don't get the sequence of methods like `.allPrivileges().exceptUserMode()` or the fault handling exactly right, you'll find yourself wasting hours to figure out why your code is trapping. My only suggestion is to look at what the existing code does and try to make sense out of it to use the same patterns for yourself instead of trying to learn every bit and bytes and re-invent the wheel.
+I spent more time than I'd care to admit staring at the `InitReg()` chains before it finally clicked how they work. The way gem5 handles bitsets for permissions and fault handlers feels like a secret handshake between the ISA and the CPU models and if you don't get the sequence of methods like `.allPrivileges().exceptUserMode()` or the fault handling exactly right, you'll find yourself wasting hours to figure out why your code is trapping. My only suggestion is to look at what the existing code does and try to make sense out of it to use the same patterns for yourself instead of trying to learn every bits and bytes and re-invent the wheel.
 
-Nevermind! Let's get back to our `GCR_EL1` register example and apply all of these to initialize this register. I'm gonna start by adding two MTE-specific fault handler functions following the same pattern as the existing `faultPieEL1` / `faultPieEL2`
+Nevermind! Let's get back to our `GCR_EL1` register example and apply all of these to initialize this register. I'll start by adding two MTE-specific fault handler functions following the same pattern as the existing `faultPieEL1` / `faultPieEL2`
 handlers which check `SCR_EL3.piEn` for `FEAT_S1PIE` registers. I found defining my own custom fault handlers more convenient as it was a little bit tricky to cover different fault handling situations for this register based on the Arm documentation (see the pseudocode [here](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/GCR-EL1--Tag-Control-Register-)). We'll add them to `src/arch/arm/regs/misc.cc` somewhere around the other feature-specific handlers.
 
 We need to handle two different cases:
@@ -352,7 +352,7 @@ InitReg(MISCREG_GCR_EL1).reset([](){
 ```
 {: file='src/arch/arm/regs/misc.cc'}
 
-The final thing to note is that we must be careful to check any existing gem5 system registers for their fields if we're accessing them in our code like accessing `hcr.ata` or `scr.ata` in our new fault handlers. We need to make sure the `ata` field exist in both registers. After checking the Arm documentation (see [this](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/HCR-EL2--Hypervisor-Configuration-Register)), I found that the `HCR_EL2` register must have the `ata` bit as its 56th bit, however, the gem5 does not have this bit. The same goes for `SCR_EL3` and its 26th bit as `ata` bit. So, we need to add these fields to these registers.
+The final thing to note is that we must be careful to check any existing gem5 system registers for their fields if we're accessing them in our code like accessing `hcr.ata` or `scr.ata` in our new fault handlers. We need to make sure the `ata` field exist in both registers. After checking the Arm documentation (see [this](https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/HCR-EL2--Hypervisor-Configuration-Register)), I found that the `HCR_EL2` register must have the `ata` bit as its 56th bit, however, gem5 does not have this bit. The same goes for `SCR_EL3` and its 26th bit as `ata` bit. So, we need to add these fields to these registers.
 
 ![](/assets/img/figures/HCR_EL2.svg){: .dark-invert}
 <em>Bit field layout of the HCR_EL2 system register</em>
@@ -589,7 +589,7 @@ Now, after adding all the MTE-related system registers, the boot procedure passe
 [0.000000] Code: f9401bf7 17ffff7c a9025bf5 f9001bf7 (d4210000)
 ```
 
-You can see the CPU correctly advertizes the Arm MTE feature and Linux kernel correctly sees it (`CPU features: detected: Memory Tagging Extension`). However, again it crashes when it tries to *actually* use MTE instructions. The key line in the call trace is: 
+You can see the CPU correctly advertises the Arm MTE feature and Linux kernel correctly sees it (`CPU features: detected: Memory Tagging Extension`). However, again it crashes when it tries to *actually* use MTE instructions. The key line in the call trace is: 
 
 ```
 [0.000000]  mte_clear_page_tags+0x10/0x24
