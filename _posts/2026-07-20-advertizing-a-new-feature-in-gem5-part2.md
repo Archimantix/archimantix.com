@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Advertising a CPU Feature in gem5 | Part 2 : Adding System Registers"
-description: How to advertise a new CPU feature to software in gem5's full-system mode, using Arm Memory Tagging Extension (MTE) as an example.
+description: Once you advertise a CPU feature in gem5, software reaches for its system registers. How to add system registers in gem5, using Arm MTE as the example.
 date: 2026-07-20 22:00:00
 categories: [dev_log]
 tags: [gem5, arm, arm_isa, arm_mte, mte, feat_mte, memory_tagging, architectural_simulation]
